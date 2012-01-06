@@ -4,9 +4,9 @@
 
 <product productid="redgroupiconsinpostbit" active="1">
 	<title>RedinkDesign - Group Icons in Postbit</title>
-	<description />
+	<description>Displays social group icons that a user belongs to in the postbit</description>
 	<version>1.0</version>
-	<url />
+	<url>https://github.com/redinkdesign/Social-Group-Icons-in-Postbit</url>
 	<versioncheckurl />
 	<dependencies>
 	</dependencies>
@@ -32,6 +32,11 @@
 	<stylevars>
 	</stylevars>
 	<plugins>
+		<plugin active="1" executionorder="3">
+			<title>Cache Templates</title>
+			<hookname>cache_templates</hookname>
+			<phpcode><![CDATA[$cache[] = 'red_social_group_icons';]]></phpcode>
+		</plugin>
 		<plugin active="1" executionorder="5">
 			<title>Display Icons</title>
 			<hookname>postbit_display_start</hookname>
