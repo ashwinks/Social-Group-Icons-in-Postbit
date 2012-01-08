@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-
-
-
 <product productid="redgroupiconsinpostbit" active="1">
 	<title>RedinkDesign - Group Icons in Postbit</title>
 	<description>Displays social group icons that a user belongs to in the postbit</description>
@@ -14,15 +11,10 @@
 	</codes>
 	<templates>
 		<template name="red_social_group_icons" templatetype="template" date="1325886653" username="ash" version="1.0"><![CDATA[<dl class="userinfo_extra">
-
 <vb:each from="red_social_icons" key="key" value="icon">
-
 	<div class="social-group-icon" style="float: left; padding-right: 2px;">
-
 		<a href="group.php?groupid={vb:var icon.groupid}" title="{vb:var icon.name}"><img class="social-group-icon-image" title="{vb:var icon.name}" height="28" width="28" src="customgroupicons/thumbs/socialgroupicon_{vb:var icon.groupid}_{vb:var icon.dateline}.gif" alt="{vb:var icon.name}" /></a>
-
 	</div>
-
 </vb:each>
 
 </dl>]]></template>
@@ -41,44 +33,21 @@
 			<title>Display Icons</title>
 			<hookname>postbit_display_start</hookname>
 			<phpcode><![CDATA[global $vbulletin;
-
-
-
 if ($vbulletin->options['red_group_icons_enabled'] && !empty($post['userid'])){
-
-
-
 	$query = "SELECT sgm.userid,sgm.groupid,sg.name,sgi.dateline,sgi.extension FROM " . TABLE_PREFIX . "socialgroupmember sgm LEFT JOIN " . TABLE_PREFIX . "socialgroup sg ON sg.groupid = sgm.groupid LEFT JOIN " . TABLE_PREFIX ."socialgroupicon sgi ON sgi.groupid = sgm.groupid WHERE sgm.userid = {$post['userid']} AND sg.type = 'public'";
-
 	$sg = $GLOBALS['vbulletin']->db->query($query);
-
-
-
 	$icons = array();
-
 	while($row = $GLOBALS['vbulletin']->db->fetch_array($sg)){
-
 		if (is_array($row)){
-
 			$icons[$row['groupid']] = $row;
-
 		}
-
 	}
-
-
 
 	if (count($icons) > 0){
-
 		$templater = vB_Template::create('red_social_group_icons');
-
 		$templater->register('red_social_icons', $icons);
-
 		$template_hook['postbit_userinfo_right'] .= $templater->render(); 
-
 	}
-
-
 
 }]]></phpcode>
 		</plugin>
