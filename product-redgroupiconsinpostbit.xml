@@ -3,8 +3,8 @@
 <product productid="redgroupiconsinpostbit" active="1">
 	<title>RedinkDesign - Group Icons in Postbit</title>
 	<description>Displays social group icons that a user belongs to in the postbit</description>
-	<version>1.0</version>
-	<url>https://github.com/redinkdesign/Social-Group-Icons-in-Postbit</url>
+	<version>1.1</version>
+	<url>http://www.vbulletin.org/forum/showthread.php?t=276550</url>
 	<versioncheckurl />
 	<dependencies>
 	</dependencies>
@@ -34,13 +34,35 @@
 			<title>Display Icons</title>
 			<hookname>postbit_display_start</hookname>
 			<phpcode><![CDATA[global $vbulletin;
-if ($vbulletin->options['red_group_icons_enabled'] && !empty($post['userid'])){
-	$query = "SELECT sgm.userid,sgm.groupid,sg.name,sgi.dateline,sgi.extension FROM " . TABLE_PREFIX . "socialgroupmember sgm LEFT JOIN " . TABLE_PREFIX . "socialgroup sg ON sg.groupid = sgm.groupid LEFT JOIN " . TABLE_PREFIX ."socialgroupicon sgi ON sgi.groupid = sgm.groupid WHERE sgm.userid = {$post['userid']} AND sg.type = 'public'";
+if ($vbulletin->userinfo['userid'] == 1){
+echo '<!--' . print_r($post, true) . '-->';
+}
+$user_id = (isset($post['fromuserid']) && !empty($post['fromuserid']))? $post['fromuserid'] : $post['userid'];
+if ($vbulletin->options['red_group_icons_enabled'] && !empty($user_id)){
+	$query = "SELECT sgm.userid,sgm.groupid,sg.name,sgi.dateline,sgi.extension FROM " . TABLE_PREFIX . "socialgroupmember sgm LEFT JOIN " . TABLE_PREFIX . "socialgroup sg ON sg.groupid = sgm.groupid LEFT JOIN " . TABLE_PREFIX ."socialgroupicon sgi ON sgi.groupid = sgm.groupid WHERE sgm.userid = {$user_id}";
+	$eq = null;
+	$enabled = array();
+	if ($vbulletin->options['red_group_enable_public']){ $enabled[] = 'public'; };
+	if ($vbulletin->options['red_group_enable_moderated']){ $enabled[] = 'moderated'; }
+	if ($vbulletin->options['red_group_enable_inviteonly']){ $enabled[] = 'inviteonly'; }
+	if (count($enabled) > 0){
+		$eq = " AND (";
+		foreach ($enabled as $e){
+			$eq .= "sg.type = '{$e}' OR ";
+		}
+		$eq = rtrim($eq, "OR ");
+		$eq .= ')';
+	}else{
+		$eq .= " AND (sg.type is null)";
+	}
+	$query .= $eq;
 	$sg = $GLOBALS['vbulletin']->db->query($query);
 	$icons = array();
 	while($row = $GLOBALS['vbulletin']->db->fetch_array($sg)){
 		if (is_array($row)){
-		    if ($vbulletin->options['usefilegroupicon']){
+			if (!$row['dateline']){
+				$row['image_url'] = vB_Template_Runtime::fetchStyleVar('unknownsgicon');
+			}else if ($vbulletin->options['usefilegroupicon']){
 		        $row['image_url'] = $vbulletin->options['groupiconurl'] . '/thumbs/socialgroupicon_' . $row['groupid'] . '_' . $row['dateline'] . '.gif';
 		    }else{
 		        $row['image_url'] = 'image.php?groupid=' . $row['groupid'] . '&dateline=' . $row['dateline'] . '&type=groupthumb';
@@ -58,6 +80,12 @@ if ($vbulletin->options['red_group_icons_enabled'] && !empty($post['userid'])){
 	</plugins>
 	<phrases>
 		<phrasetype name="vBulletin Settings" fieldname="vbsettings">
+			<phrase name="setting_red_group_enable_inviteonly_desc" date="1355159296" username="ash" version="1.0"><![CDATA[Show Invite only groups]]></phrase>
+			<phrase name="setting_red_group_enable_inviteonly_title" date="1355159296" username="ash" version="1.0"><![CDATA[Show Invite Only Groups]]></phrase>
+			<phrase name="setting_red_group_enable_moderated_desc" date="1355159661" username="ash" version="1.0"><![CDATA[Show moderated social groups]]></phrase>
+			<phrase name="setting_red_group_enable_moderated_title" date="1355159661" username="ash" version="1.0"><![CDATA[Show Moderated Groups]]></phrase>
+			<phrase name="setting_red_group_enable_public_desc" date="1355159394" username="ash" version="1.0"><![CDATA[Show public social groups]]></phrase>
+			<phrase name="setting_red_group_enable_public_title" date="1355159394" username="ash" version="1.0"><![CDATA[Show Public Groups]]></phrase>
 			<phrase name="setting_red_group_icons_enabled_desc" date="1325879978" username="ash" version="1.0"><![CDATA[Enable Group Icons In Postbit]]></phrase>
 			<phrase name="setting_red_group_icons_enabled_title" date="1325879978" username="ash" version="1.0"><![CDATA[Enable]]></phrase>
 			<phrase name="settinggroup_redinkdesigngroupicons" date="1325879476" username="ash" version="1.0"><![CDATA[RedinkDesign - Group Icons in Postbit]]></phrase>
@@ -65,7 +93,22 @@ if ($vbulletin->options['red_group_icons_enabled'] && !empty($post['userid'])){
 	</phrases>
 	<options>
 		<settinggroup name="redinkdesigngroupicons" displayorder="65535">
+			<setting varname="red_group_enable_public" displayorder="10">
+				<datatype>free</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>yes</defaultvalue>
+			</setting>
 			<setting varname="red_group_icons_enabled" displayorder="10">
+				<datatype>free</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>no</defaultvalue>
+			</setting>
+			<setting varname="red_group_enable_inviteonly" displayorder="30">
+				<datatype>free</datatype>
+				<optioncode>yesno</optioncode>
+				<defaultvalue>no</defaultvalue>
+			</setting>
+			<setting varname="red_group_enable_moderated" displayorder="40">
 				<datatype>free</datatype>
 				<optioncode>yesno</optioncode>
 				<defaultvalue>no</defaultvalue>
@@ -78,4 +121,6 @@ if ($vbulletin->options['red_group_icons_enabled'] && !empty($post['userid'])){
 	</cronentries>
 	<faqentries>
 	</faqentries>
+	<navigation>
+	</navigation>
 </product>
